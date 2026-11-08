@@ -1,0 +1,31 @@
+import express from "express";
+import cors from "cors";
+import { MongoClient } from "mongodb";
+import "dotenv/config";
+
+const port = process.env.PORT || 4000;
+const app = express();
+
+const client = new MongoClient(process.env.MONGODB_URL);
+export async function connectToMongoDB() {
+  try {
+    await client.connect();
+    console.log("You successfully connected to MongoDB!");
+    return client;
+  } catch (err) {
+    console.dir(err);
+  }
+}
+connectToMongoDB();
+
+app.use(express.json());
+app.use(cors());
+
+app.get("/", (req, res) => {
+    res.send("Hello, World!");
+});
+
+
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+})
