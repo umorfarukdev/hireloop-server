@@ -6,6 +6,9 @@ import "dotenv/config";
 const port = process.env.PORT || 4000;
 const app = express();
 
+app.use(express.json());
+app.use(cors());
+
 const client = new MongoClient(process.env.MONGODB_URL);
 export async function connectToMongoDB() {
   try {
@@ -16,16 +19,42 @@ export async function connectToMongoDB() {
     console.dir(err);
   }
 }
-connectToMongoDB();
-
-app.use(express.json());
-app.use(cors());
+const mongoClient = await connectToMongoDB();
+const db = mongoClient.db("hireloopdb");
+const users = db.collection("user");
+const jobs = db.collection("jobs");
 
 app.get("/", (req, res) => {
-    res.send("Hello, World!");
+  res.send("HireLoop Backend is running");
 });
 
+app.get("/users", async (req, res) => {
+  const cursor = users.find({});
+  const result = await cursor.toArray();
+  res.send(result);
+});
+
+app.get("/jobs", async (req, res) => {
+  const cursor = jobs.find({});
+  const result = await cursor.toArray();
+  res.send(result);
+});
+
+app.get("/jobs/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await jobs.findOne(query);
+  res.send(result);
+});
+
+app.post("/jobs", async (req, res) => {
+  const newJobs = req.body;
+  const result = await jobs.insertOne(newJobs);
+  res.send(result);
+});
+
+a;
 
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-})
+  console.log(`HireLoop is running on port ${port}`);
+});
