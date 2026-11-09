@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import "dotenv/config";
 
 const port = process.env.PORT || 4000;
@@ -53,7 +53,12 @@ app.post("/jobs", async (req, res) => {
   res.send(result);
 });
 
-a;
+app.delete("/jobs/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await jobs.deleteOne(query);
+  res.send(result);
+});
 
 app.listen(port, () => {
   console.log(`HireLoop is running on port ${port}`);
