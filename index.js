@@ -35,7 +35,31 @@ app.get("/users", async (req, res) => {
 });
 
 app.get("/jobs", async (req, res) => {
-  const cursor = jobs.find({});
+  const query = {};
+  // console.log("query", req.query);
+  if (req.query) {
+    if (req.query.jobType) {
+      query.jobType = req.query.jobType;
+    }
+    if (req.query.isRemote) {
+      query.isRemote = req.query.isRemote === "true";
+    }
+    if (req.query.salaryFrequency) {
+      query.salaryFrequency = req.query.salaryFrequency;
+    }
+    if (req.query.jobCategory) {
+      query.jobCategory = req.query.jobCategory;
+    }
+    // Search title, description, and requirements
+    if (req.query.search) {
+      query.$or = [
+        { jobTitle: { $regex: req.query.search, $options: "i" } },
+        { responsibilities: { $regex: req.query.search, $options: "i" } },
+        { qualifications: { $regex: req.query.search, $options: "i" } },
+      ];
+    }
+  }
+  const cursor = jobs.find(query);
   const result = await cursor.toArray();
   res.send(result);
 });
