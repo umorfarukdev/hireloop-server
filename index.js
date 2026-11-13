@@ -85,13 +85,13 @@ app.delete("/jobs/:id", async (req, res) => {
   res.send(result);
 });
 
-
 app.get("/applications/:email", async(req, res) => {
   const email = req.params.email
   const query = {userEmail: email}
   const result = await applications.find(query).toArray()
   res.send(result)
 })
+
 
 app.post("/applications", async(req, res) => {
   const application = req.body;
