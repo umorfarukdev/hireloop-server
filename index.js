@@ -23,6 +23,7 @@ const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("hireloopdb");
 const users = db.collection("user");
 const jobs = db.collection("jobs");
+const applications = db.collection("applications")
 
 app.get("/", (req, res) => {
   res.send("HireLoop Backend is running");
@@ -83,6 +84,20 @@ app.delete("/jobs/:id", async (req, res) => {
   const result = await jobs.deleteOne(query);
   res.send(result);
 });
+
+
+app.get("/applications/:email", async(req, res) => {
+  const email = req.params.email
+  const query = {userEmail: email}
+  const result = await applications.find(query).toArray()
+  res.send(result)
+})
+
+app.post("/applications", async(req, res) => {
+  const application = req.body;
+  const result = await applications.insertOne(application)
+  res.send(result)
+})
 
 app.listen(port, () => {
   console.log(`HireLoop is running on port ${port}`);
