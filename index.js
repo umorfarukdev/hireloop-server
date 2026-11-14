@@ -23,7 +23,8 @@ const mongoClient = await connectToMongoDB();
 const db = mongoClient.db("hireloopdb");
 const users = db.collection("user");
 const jobs = db.collection("jobs");
-const applications = db.collection("applications")
+const applications = db.collection("applications");
+const savedJobs = db.collection("saved-jobs");
 
 app.get("/", (req, res) => {
   res.send("HireLoop Backend is running");
@@ -85,19 +86,60 @@ app.delete("/jobs/:id", async (req, res) => {
   res.send(result);
 });
 
-app.get("/applications/:email", async(req, res) => {
-  const email = req.params.email
-  const query = {userEmail: email}
-  const result = await applications.find(query).toArray()
-  res.send(result)
-})
+app.get("/applications", async (req, res) => {
+  const query = {};
+  if (req.query.applicantId) {
+    query.userId = req.query.applicantId;
+  }
+  const result = await applications.find(query).toArray();
+  res.send(result);
+});
 
+app.get("/applications/count", async (req, res) => {
+  const query = {};
+  if (req.query.applicantId) {
+    query.userId = req.query.applicantId;
+  }
+  const result = await applications.countDocuments(query)
+  res.send({count: result});
+});
 
-app.post("/applications", async(req, res) => {
+app.post("/applications", async (req, res) => {
   const application = req.body;
-  const result = await applications.insertOne(application)
-  res.send(result)
-})
+  const result = await applications.insertOne(application);
+  res.send(result);
+});
+
+app.post("/saved-jobs", async (req, res) => {
+  const data = req.body;
+  const existing = await savedJobs.findOne({
+    jobId: data.jobId,
+    userId: data.userId,
+  });
+  if (existing) {
+    return res.status(409).send({ message: "Job already saved" });
+  }
+  const saveJob = {
+    ...data,
+    savedAt: new Date(),
+  };
+  const result = await savedJobs.insertOne(saveJob);
+  res.send(result);
+});
+
+app.get("/saved-jobs/:email", async (req, res) => {
+  const result = await savedJobs
+    .find({ userEmail: req.params.email })
+    .sort({ savedAt: -1 })
+    .toArray();
+  res.send(result);
+});
+
+app.delete("/saved-jobs/:jobId/:userId", async (req, res) => {
+  const { jobId, userId } = req.params;
+  const result = await savedJobs.deleteOne({ jobId, userId });
+  res.send(result);
+});
 
 app.listen(port, () => {
   console.log(`HireLoop is running on port ${port}`);
